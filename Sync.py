@@ -1,26 +1,38 @@
 # -*- coding: utf-8 -
 
-import pdb
+import time
+import upyun
 import threading
 import logging
 
 import DB
 
-def Sync(gdr, w, db):
+def Start(gdr, w, db):
     for i in range(w):
         Worker(gdr, db).start()
 
+    gdr.workq.join()
+
 class Worker(threading.Thread):
     def __init__(self, gdr, db):
+        threading.Thread.__init__(self)
         self.workq = gdr.workq
         self.db = db
-        threading.Thread.__init__(self)
 
     def run(self):
         while True:
-            item = self.workq.get()
-            self.upload(item)
-            self.db.Put(item, DB.FILE_STATUS_SYNCED)
+            task = self.workq.get()
+            self.handle(task)
+            self.workq.task_done()
+    
+    def handle(self, task):
+        now = time.time()
+        if task.delay > tic():
+            time.sleep(now - task.delay)
 
-    def upload(src):
-        pass
+        cmd = task.cmd.split("")
+
+        if cmd[0] == "Put":
+            pass
+        elif cmd[0] == "Mkdir":
+            pass
