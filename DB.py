@@ -8,7 +8,7 @@ class DB(object):
         The persistant part, write down the current work status
     """
 
-    def __init__(self, gdr, dbd, workq):
+    def __init__(self, gdr, dbd):
         """
         @param gdr: the gondar object
         @type  gdr: class Gondar
@@ -27,3 +27,9 @@ class DB(object):
 
     def Put(self, key, value):
         self.db.Put(key, value)
+
+    def Delete(self, key):
+        try:
+            self.db.Delete(key)
+        except:
+            pass

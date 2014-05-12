@@ -4,8 +4,8 @@
 
 import os
 import sys
+import time
 import heapq
-import upyun
 import Queue
 import leveldb
 import argparse
@@ -15,10 +15,6 @@ import Sync
 import Watcher
 
 from Util import Task
-
-
-class Up(object):
-    pass
 
 class Gondar(object):
     """
@@ -56,7 +52,7 @@ class Gondar(object):
         self.time = time or 0
         self.worker = worker or 1
 
-        self.db = DB.DB(self, dbd or "/tmp/Gondar/db")
+        self.db = DB.DB(self, dbd or "./db")
         self.logpath = logpath or "/tmp/Gondar/Gondar.log"
         self.rec = rec or True
 
@@ -84,17 +80,24 @@ class Gondar(object):
                 relpath = os.path.relpath(abspath, self.src)
                 remotepath = os.path.join(self.dst, relpath)
                 if os.path.isdir(abspath):
-                    value = "Mkdir %s:%f:%d" % (remotepath, tic(), 10)
+                    value = "Mkdir %s:%f:%d" % (remotepath, tic() + 5, 10)
                 else:
-                    value = "Put %s %s:%f:%d" % (abspath, remotepath, tic() + 60, 5)
+                    value = "Put %s %s:%f:%d" % (abspath, remotepath, tic() + 10, 5)
                 self.db.Put(abspath, value)
-            self.workq.put(Task(value))
+            else:
+                value = self.db.Get(abspath)
+            self.workq.put(Task(abspath, value))
 
     def run(self):
         self.init_src()
         watcher = Watcher.Watcher(self, self.workq, self.src, self.dst)
-        watcher.loop()
-        Sync.Start(self, self.worker, db)
+
+        try:
+            watcher.loop()
+            Sync.Start(self, self.worker, self.db)
+        except KeyboardInterrupt:
+            watcher.stop()
+            Sync.Stop()
 
 def Parser():
     usage = "Gondar is watching you"

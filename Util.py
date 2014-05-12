@@ -2,7 +2,8 @@ class Task(object):
     """
         The item in Priority Queue
     """
-    def __init__(self, value):
+    def __init__(self, path, value):
+        self.path = path
         cmd, delay, pri = value.split(":")
         self.cmd = cmd
         self.delay = float(delay)
